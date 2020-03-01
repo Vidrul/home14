@@ -13,9 +13,14 @@ class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        userImage.image = UIImage(named: "empty")
-        firstNameLabel.text = ""
-        secondNameLabel.text = ""
+        let user = loadUser()
+        if let user = user {
+            updateUI(withUser: user)
+        } else {
+            userImage.image = UIImage(named: "empty")
+            firstNameLabel.text = ""
+            secondNameLabel.text = ""
+        }
     }
     
     
@@ -33,10 +38,20 @@ class MainViewController: UIViewController {
 
 extension MainViewController: ChangeUserViewControllerDelegate {
     func UserInfoChange(info: User) {
-        firstNameLabel.text = info.name
-        secondNameLabel.text = info.secondName
+        updateUI(withUser: info)
+        saveUser(info)
+    }
+    
+    
+}
+
+private extension MainViewController {
+    
+    func updateUI(withUser user: User) {
+        firstNameLabel.text = user.name
+        secondNameLabel.text = user.secondName
         let image: UIImage
-        switch info.sex {
+        switch user.sex {
         case .male:
             image = UIImage(named: "male")!
         case .female:
@@ -48,4 +63,24 @@ extension MainViewController: ChangeUserViewControllerDelegate {
     }
     
     
+    
+    func saveUser(_ user: User) {
+        UserDefaults.standard.set(user.name, forKey: "user.name")
+        UserDefaults.standard.set(user.secondName, forKey: "user.secondName")
+        UserDefaults.standard.set(user.sex.rawValue, forKey: "user.sex")
+    }
+    
+    func loadUser() -> User? {
+        if let firstName = UserDefaults.standard.value(forKey: "user.name") as? String,
+            let secondName = UserDefaults.standard.value(forKey: "user.secondName") as? String,
+            let stringSex = UserDefaults.standard.value(forKey: "user.sex") as? String,
+            let sex =  Sex(rawValue: stringSex ) {
+    
+            let user = User(name: firstName, secondName: secondName, sex: sex)
+            return user
+            
+        }
+        return nil
+    }
 }
+
